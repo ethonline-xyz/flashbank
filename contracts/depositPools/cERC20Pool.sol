@@ -4,27 +4,9 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
 import { DSMath } from "../libs/safeMath.sol";
-
-interface CTokenInterface {
-    function mint(uint mintAmount) external returns (uint);
-    function redeemUnderlying(uint redeemAmount) external returns (uint);
-    function redeem(uint redeemTokens) external returns (uint);
-
-    function exchangeRateCurrent() external returns (uint);
-
-    function balanceOf(address owner) external view returns (uint256 balance);
-    function underlying() external view returns (address);
-
-    function approve(address, uint) external;
-    function transfer(address, uint) external returns (bool);
-    function transferFrom(address, address, uint) external returns (bool);
-}
-
-interface FlashModuleInterface {
-  function test() external view returns (address);
-}
+import "../interfaces/CTokenInterface.sol";
+import "../interfaces/FlashModuleInterface.sol";
 
 contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
   using SafeERC20 for IERC20;
@@ -36,16 +18,18 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
 
   CTokenInterface public immutable cToken; // Compound token. Eg:- cDAI, cUSDC, etc.
   IERC20 public immutable underlyingToken; // underlying ctoken. Eg:- DAI, USDC, etc.
-  FlashModuleInterface public constant flashModule = FlashModuleInterface(address(0)); // Flashloan module contract
+  FlashModuleInterface public immutable flashModule; // Flashloan module contract
 
   uint public exchangeRate; // initial 1 ctoken = 1 wrap token
 
   constructor(
     string memory _name,
     string memory _symbol,
-    address _ctoken
+    address _ctoken,
+	address _flashmodule
   ) public ERC20(_name, _symbol) {
     cToken = CTokenInterface(_ctoken);
+	flashModule = FlashModuleInterface(_flashmodule);
     underlyingToken = IERC20(CTokenInterface(_ctoken).underlying());
     IERC20(CTokenInterface(_ctoken).underlying()).approve(_ctoken, uint(-1));
     exchangeRate = 10 ** 28;
