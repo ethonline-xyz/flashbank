@@ -1,8 +1,8 @@
-pragma solidity 0.5.16;
+pragma solidity ^0.6.8;
 
-import "./FlashModule.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "./module.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // test purpose only
 contract FlashTest is Ownable {
@@ -13,7 +13,7 @@ contract FlashTest is Ownable {
 
     // @notice Borrow any ERC20 token that the FlashModule holds
     function borrow(address token, uint256 amount) public onlyOwner {
-        flasher.ERC20FlashLoan(token, amount);
+        flasher.flashloan(token, amount);
     }
 
     // this is called by FlashModule after borrower has received the tokens
