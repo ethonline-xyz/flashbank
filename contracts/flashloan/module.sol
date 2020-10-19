@@ -18,7 +18,7 @@ interface CTokenPoolInterface {
 }
 
 interface IERC20Flash {
-    function executeOnERC20FlashLoan(address token, uint256 amount, uint256 debt) external;
+    function executeOnERC20FlashLoan(address token, uint256 amount, uint256 debt, bytes calldata params) external;
 }
 
 interface CTokenInterface {
@@ -65,7 +65,7 @@ contract FlashModule is DSMath, Ownable {
     event LogAddedToken(address token);
     
     // @notice Borrow tokens via a flash loan. See FlashTest for example.
-    function flashloan(address token, uint256 amount) external {
+    function flashloan(address token, uint256 amount,bytes calldata params) external {
         // token must be whitelisted
         require(whitelistCToken[token], "token not whitelisted");
 
@@ -76,14 +76,14 @@ contract FlashModule is DSMath, Ownable {
         IERC20(token).safeTransfer(msg.sender, amount);
 
         // hand over control to borrower
-        IERC20Flash(msg.sender).executeOnERC20FlashLoan(token, amount, debt);
+        IERC20Flash(msg.sender).executeOnERC20FlashLoan(token, amount, debt, params);
 
         // repay the debt
         IERC20(token).safeTransferFrom(msg.sender, address(this), debt);
     }
 
     // @notice Borrow tokens via a flash loan. See FlashTest for example.
-    function flashloanUnderlying(address token, uint256 amount) external {
+    function flashloanUnderlying(address token, uint256 amount,bytes calldata params) external {
         // token must be whitelisted
         require(whitelistToken[token], "token not whitelisted");
 
@@ -97,7 +97,7 @@ contract FlashModule is DSMath, Ownable {
         IERC20(token).safeTransfer(msg.sender, amount);
 
         // hand over control to borrower
-        IERC20Flash(msg.sender).executeOnERC20FlashLoan(token, amount, debt);
+        IERC20Flash(msg.sender).executeOnERC20FlashLoan(token, amount, debt, params);
 
         // repay the debt
         IERC20(token).safeTransferFrom(msg.sender, address(this), debt);
