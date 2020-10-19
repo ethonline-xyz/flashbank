@@ -4,12 +4,14 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import { DSMath } from "../libs/safeMath.sol";
+
 import "../interfaces/IERC20Flash.sol";
 import "../interfaces/CTokenPoolInterface.sol";
 import "../interfaces/CTokenInterface.sol";
 import "../interfaces/WrappedEtherInterface.sol";
 import "../interfaces/CETHInterface.sol";
+
+import { DSMath } from "../libs/safeMath.sol";
 
 // @notice Any contract that inherits this contract becomes a flash lender of any ERC20 tokens that it has whitelisted.
 contract FlashModule is DSMath, Ownable {
@@ -41,7 +43,7 @@ contract FlashModule is DSMath, Ownable {
     }
     
     // @notice Borrow tokens via a flash loan. See FlashTest for example.
-    function flashloan(address token, uint256 amount,bytes calldata params) external {
+    function flashloan(address token, uint256 amount, bytes calldata params) external {
         // token must be whitelisted
         require(whitelistCToken[token], "token not whitelisted");
 
@@ -59,7 +61,7 @@ contract FlashModule is DSMath, Ownable {
     }
 
     // @notice Borrow tokens via a flash loan. See FlashTest for example.
-    function flashloanUnderlying(address token, uint256 amount,bytes calldata params) external {
+    function flashloanUnderlying(address token, uint256 amount, bytes calldata params) external {
         // token must be whitelisted
         require(whitelistToken[token], "token not whitelisted");
 
@@ -71,7 +73,7 @@ contract FlashModule is DSMath, Ownable {
         
 		// if underlying asset is eth then convert eth got from compound to weth
 		if(token == ethAddr) {
-		weth.deposit{value: address(this).balance}();
+		    weth.deposit{value: address(this).balance}();
 		}
 		
         // send borrower the tokens
@@ -86,7 +88,7 @@ contract FlashModule is DSMath, Ownable {
         // payback underlying token on compound
         if (token == ethAddr) {
 		    // first convert weth received to eth
-			weth.withdraw(amount);
+			weth.withdraw(weth.balanceOf(address(this)));
 			// repay eth to compound by sending eth back
             CETHInterface(ctokenMapping[token]).repayBorrow{value: amount}();
         } else {

@@ -4,9 +4,11 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { DSMath } from "../libs/safeMath.sol";
+
 import "../interfaces/CTokenInterface.sol";
 import "../interfaces/FlashModuleInterface.sol";
+
+import { DSMath } from "../libs/safeMath.sol";
 
 contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
   using SafeERC20 for IERC20;
@@ -29,7 +31,7 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
 	address _flashmodule
   ) public ERC20(_name, _symbol) {
     cToken = CTokenInterface(_ctoken);
-	flashModule = FlashModuleInterface(_flashmodule);
+	  flashModule = FlashModuleInterface(_flashmodule);
     underlyingToken = IERC20(CTokenInterface(_ctoken).underlying());
     IERC20(CTokenInterface(_ctoken).underlying()).approve(_ctoken, uint(-1));
     exchangeRate = 10 ** 28;
@@ -100,6 +102,4 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
 
     emit LogWithdraw(msg.sender, ctokenAmt, amount);
   }
-
-  // receive() external payable {}
 }
