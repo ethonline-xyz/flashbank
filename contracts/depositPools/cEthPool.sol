@@ -41,10 +41,10 @@ contract FlashCETHPool is ReentrancyGuard, ERC20, DSMath {
     string memory _name,
     string memory _symbol,
     address _ctoken,
-	address _module
+	address _flashmodule
   ) public ERC20(_name, _symbol) {
     cToken = CTokenInterface(_ctoken);
-	flashModule = FlashModuleInterface(_module);
+	flashModule = FlashModuleInterface(_flashmodule);
     underlyingToken = IERC20(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     exchangeRate = 10 ** 28;
   }

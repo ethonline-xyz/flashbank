@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.8;
 
-import "./WrappedEtherInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -11,7 +10,7 @@ import { DSMath } from "../libs/safeMath.sol";
 // TODO 
 /// - add compound borrow and repay for underlying flashloan-done
 /// - add token to ctoken mapping for underlying flashloan-done
-/// - handling logic for cETH
+/// - handling logic for cETH-done
 
 interface CTokenPoolInterface {
   function cToken() external view returns (CTokenInterface);
@@ -20,6 +19,11 @@ interface CTokenPoolInterface {
 
 interface IERC20Flash {
     function executeOnERC20FlashLoan(address token, uint256 amount, uint256 debt, bytes calldata params) external;
+}
+
+interface WrappedEtherInterface {
+  function deposit() external payable;
+  function withdraw(uint amount) external;
 }
 
 interface CTokenInterface {
@@ -103,7 +107,7 @@ contract FlashModule is DSMath, Ownable {
         // borrow underlying token from compound
         CTokenInterface(ctokenMapping[token]).borrow(amount);
         
-		// if underlying asset is eth then convert to weth
+		// if underlying asset is eth then convert eth got from compound to weth
 		if(token == ethAddr) {
 		weth.deposit{value: address(this).balance}();
 		}

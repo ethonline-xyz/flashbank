@@ -2,7 +2,7 @@
 pragma solidity ^0.6.8;
 
 // instead of importing flashmodule import interface
-import "./module.sol";
+import "./flashModule.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -14,9 +14,9 @@ contract FlashTest is Ownable {
     FlashModule public flasher; // Flashloan Module Contract
 
     constructor(
-    address _module
+    address _flashmodule
     ) public {
-	flasher = FlashModule(_module);
+	flasher = FlashModule(_flashmodule);
     }	
 
     // @notice Borrow any ERC20 token that the FlashModule holds
