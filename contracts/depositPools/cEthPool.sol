@@ -3,7 +3,6 @@ pragma solidity ^0.6.8;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
 import { DSMath } from "../libs/safeMath.sol";
 
 interface CTokenInterface {
@@ -34,16 +33,18 @@ contract FlashCETHPool is ReentrancyGuard, ERC20, DSMath {
 
   CTokenInterface public immutable cToken; // Compound token. Eg:- cDAI, cUSDC, etc.
   IERC20 public immutable underlyingToken; // underlying ctoken. Eg:- DAI, USDC, etc.
-  FlashModuleInterface public constant flashModule = FlashModuleInterface(address(0)); // Flashloan module contract
+  FlashModuleInterface public immutable flashModule; // Flashloan module contract
 
   uint public exchangeRate; // initial 1 ctoken = 1 wrap token
 
   constructor(
     string memory _name,
     string memory _symbol,
-    address _ctoken
+    address _ctoken,
+	address _module
   ) public ERC20(_name, _symbol) {
     cToken = CTokenInterface(_ctoken);
+	flashModule = FlashModuleInterface(_module);
     underlyingToken = IERC20(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     exchangeRate = 10 ** 28;
   }

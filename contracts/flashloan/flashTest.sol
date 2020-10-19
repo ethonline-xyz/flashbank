@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.8;
 
 // instead of importing flashmodule import interface

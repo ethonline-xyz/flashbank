@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.8;
 
+import "./WrappedEtherInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -8,8 +9,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import { DSMath } from "../libs/safeMath.sol";
 
 // TODO 
-/// - add compound borrow and repay for underlying flashloan
-/// - add token to ctoken mapping for underlying flashloan
+/// - add compound borrow and repay for underlying flashloan-done
+/// - add token to ctoken mapping for underlying flashloan-done
 /// - handling logic for cETH
 
 interface CTokenPoolInterface {
@@ -49,6 +50,13 @@ contract FlashModule is DSMath, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
+	event LogFlashloanFeeChanged(uint newFee);
+    event LogAddedCTokenPool(address ctokenPool, address ctoken, address underlyingToken);
+    event LogAddedCTokenMapping(address ctoken, address underlyingToken);
+    event LogAddedToken(address token);
+	
+	WrappedEtherInterface public immutable weth; // wrapped eth Contract
+	
     address internal ethAddr = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address immutable cethAddr;
 
@@ -58,11 +66,13 @@ contract FlashModule is DSMath, Ownable {
     mapping(address => bool) public whitelistCToken;
     mapping(address => bool) public whitelistToken;
     mapping(address => address) public ctokenMapping; // token address => ctoken address mapping
-
-    event LogFlashloanFeeChanged(uint newFee);
-    event LogAddedCTokenPool(address ctokenPool, address ctoken, address underlyingToken);
-    event LogAddedCTokenMapping(address ctoken, address underlyingToken);
-    event LogAddedToken(address token);
+	
+	constructor (uint _fee, address _cethAddr, address _weth) public {
+        _flashloanFee = _fee;
+        cethAddr = _cethAddr;
+        ctokenMapping[_cethAddr] = ethAddr;
+        weth = WrappedEtherInterface(_weth);
+    }
     
     // @notice Borrow tokens via a flash loan. See FlashTest for example.
     function flashloan(address token, uint256 amount,bytes calldata params) external {
@@ -93,6 +103,11 @@ contract FlashModule is DSMath, Ownable {
         // borrow underlying token from compound
         CTokenInterface(ctokenMapping[token]).borrow(amount);
         
+		// if underlying asset is eth then convert to weth
+		if(token == ethAddr) {
+		weth.deposit{value: address(this).balance}();
+		}
+		
         // send borrower the tokens
         IERC20(token).safeTransfer(msg.sender, amount);
 
@@ -104,6 +119,9 @@ contract FlashModule is DSMath, Ownable {
 
         // payback underlying token on compound
         if (token == ethAddr) {
+		    // first convert weth received to eth
+			weth.withdraw(amount);
+			// repay eth to compound by sending eth back
             CETHInterface(ctokenMapping[token]).repayBorrow{value: amount}();
         } else {
             CTokenInterface(ctokenMapping[token]).repayBorrow(uint(-1));
@@ -169,14 +187,6 @@ contract FlashModule is DSMath, Ownable {
         ctokenMapping[address(token)] = ctokenAddr;
 
         emit LogAddedCTokenMapping(address(ctokenAddr), address(token));
-    }
-
-
-    constructor (uint _fee, address _cethAddr) public {
-        _flashloanFee = _fee;
-        cethAddr = _cethAddr;
-        ctokenMapping[_cethAddr] = ethAddr;
-
     }
 
 }
