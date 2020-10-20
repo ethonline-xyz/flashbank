@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.8;
 
-// instead of importing flashmodule import interface
 import "./flashModule.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// Flashloan Example
-contract FlashTest is Ownable {
+// ERC20 Flashloan Example
+contract ERC20FlashTest is Ownable {
 	
     // set the Lender contract address to a trusted flashmodule contract
     FlashModule public flasher; // Flashloan Module Contract

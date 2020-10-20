@@ -4,8 +4,10 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import "../interfaces/IERC20Flash.sol";
+import "../interfaces/IETHFlash.sol";
 import "../interfaces/CTokenPoolInterface.sol";
 import "../interfaces/CTokenInterface.sol";
 import "../interfaces/WrappedEtherInterface.sol";
@@ -14,7 +16,7 @@ import "../interfaces/CETHInterface.sol";
 import { DSMath } from "../libs/safeMath.sol";
 
 // @notice Any contract that inherits this contract becomes a flash lender of any ERC20 tokens that it has whitelisted.
-contract FlashModule is DSMath, Ownable {
+contract FlashModule is DSMath, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
@@ -30,6 +32,7 @@ contract FlashModule is DSMath, Ownable {
 
     uint256 internal _flashloanFee; // e.g.: 0.003e18 means 0.3% fee
     uint256 internal admin; // e.g.: 0.003e18 means 0.3% fee
+	uint256 private _ethBorrowerDebt; // for borrower debt
 
     mapping(address => bool) public whitelistCToken;
     mapping(address => bool) public whitelistToken;
@@ -94,6 +97,26 @@ contract FlashModule is DSMath, Ownable {
         } else {
             CTokenInterface(ctokenMapping[token]).repayBorrow(uint(-1));
         }
+    }
+	
+	function ETHFlashLoan(uint256 amount,bytes calldata params) external nonReentrant {
+
+        // record debt
+        _ethBorrowerDebt = wmul(amount, add(WAD, _flashloanFee));
+
+        // send borrower the eth
+        msg.sender.transfer(amount);
+
+        // hand over control to borrower
+        IETHFlash(msg.sender).executeOnETHFlashLoan(amount, _ethBorrowerDebt, params);
+
+        // check that debt was fully repaid
+        require(_ethBorrowerDebt == 0, "loan not paid back");
+    }
+    
+	// @notice Repay all loan
+    function repayEthDebt() public payable {
+        _ethBorrowerDebt = _ethBorrowerDebt.sub(msg.value); // does not allow overpayment
     }
 
     /**
