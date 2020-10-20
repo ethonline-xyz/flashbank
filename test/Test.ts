@@ -1,10 +1,8 @@
-import { ethers } from "@nomiclabs/buidler";
+import {ethers} from "@nomiclabs/buidler";
 import chai from "chai";
-import { deployContract, solidity } from "ethereum-waffle";
+import {deployContract, solidity} from "ethereum-waffle";
 
 chai.use(solidity);
-const { expect } = chai;
+const {expect} = chai;
 
-describe("", () => {
-  
-});
+describe("", () => {});

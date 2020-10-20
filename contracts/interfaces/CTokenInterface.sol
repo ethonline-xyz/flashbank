@@ -2,18 +2,29 @@
 pragma solidity ^0.6.8;
 
 interface CTokenInterface {
-    function mint(uint mintAmount) external returns (uint);
-    function borrow(uint borrowAmount) external returns (uint);
-    function repayBorrow(uint repayAmount) external returns (uint);
-    function redeemUnderlying(uint redeemAmount) external returns (uint);
-    function redeem(uint redeemTokens) external returns (uint);
+    function mint(uint256 mintAmount) external returns (uint256);
 
-    function exchangeRateCurrent() external returns (uint);
+    function borrow(uint256 borrowAmount) external returns (uint256);
+
+    function repayBorrow(uint256 repayAmount) external returns (uint256);
+
+    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
+
+    function redeem(uint256 redeemTokens) external returns (uint256);
+
+    function exchangeRateCurrent() external returns (uint256);
 
     function balanceOf(address owner) external view returns (uint256 balance);
+
     function underlying() external view returns (address);
 
-    function approve(address, uint) external;
-    function transfer(address, uint) external returns (bool);
-    function transferFrom(address, address, uint) external returns (bool);
+    function approve(address, uint256) external;
+
+    function transfer(address, uint256) external returns (bool);
+
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) external returns (bool);
 }

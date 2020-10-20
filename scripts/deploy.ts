@@ -1,4 +1,4 @@
-import { ethers } from "@nomiclabs/buidler";
+import {ethers} from "@nomiclabs/buidler";
 
 async function main() {
   const factory = await ethers.getContractFactory("");
@@ -18,7 +18,7 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });
