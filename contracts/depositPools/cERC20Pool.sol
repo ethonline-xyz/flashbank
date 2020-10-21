@@ -124,7 +124,7 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
         getExchangeRate();
         ctokenAmt = wmul(amount, exchangeRate);
 
-        require(cToken.transferFrom(address(flashModule), target, ctokenAmt), "ctoken-tranferFrom-failed");;
+        require(cToken.transferFrom(address(flashModule), target, ctokenAmt), "ctoken-tranferFrom-failed");
 
         emit LogWithdraw(msg.sender, ctokenAmt, amount);
     }
