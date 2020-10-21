@@ -49,12 +49,13 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
      * @dev get current exchange rate
      */
     function getExchangeRate() public {
-        address flashModuleAddr = address(flashModule);
-        uint256 _ctokenBal = cToken.balanceOf(flashModuleAddr);
-        uint256 _tokenBal = underlyingToken.balanceOf(flashModuleAddr);
-        _ctokenBal += wdiv(_tokenBal, cToken.exchangeRateCurrent());
-        exchangeRate = wmul(_ctokenBal, totalSupply());
-
+        if (totalSupply() != 0) {
+            address flashModuleAddr = address(flashModule);
+            uint256 _ctokenBal = cToken.balanceOf(flashModuleAddr);
+            uint256 _tokenBal = underlyingToken.balanceOf(flashModuleAddr);
+            _ctokenBal += wdiv(_tokenBal, cToken.exchangeRateCurrent());
+            exchangeRate = wmul(_ctokenBal, totalSupply());
+        }
         emit LogExchangeRate(exchangeRate);
     }
 
