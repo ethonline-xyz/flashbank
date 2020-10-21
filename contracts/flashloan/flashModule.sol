@@ -35,7 +35,6 @@ contract FlashModule is DSMath, Ownable, ReentrancyGuard {
     address immutable cethAddr;
 
     uint256 internal _flashloanFee; // e.g.: 0.003e18 means 0.3% fee
-    uint256 internal admin; // e.g.: 0.003e18 means 0.3% fee
     uint256 private _ethBorrowerDebt; // for borrower debt
 
     mapping(address => bool) public whitelistCToken;
