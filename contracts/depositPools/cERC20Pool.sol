@@ -42,7 +42,8 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
             _ctoken,
             uint256(-1)
         );
-        exchangeRate = 10**28;
+        exchangeRate = 10**18;
+        _setupDecimals(8);
     }
 
     /**
@@ -54,9 +55,13 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
             uint256 _ctokenBal = cToken.balanceOf(flashModuleAddr);
             uint256 _tokenBal = underlyingToken.balanceOf(flashModuleAddr);
             _ctokenBal += wdiv(_tokenBal, cToken.exchangeRateCurrent());
-            exchangeRate = wmul(_ctokenBal, totalSupply());
+            exchangeRate = wdiv(_ctokenBal, totalSupply());
+        } else {
+            exchangeRate = 10 ** 18;
         }
+
         emit LogExchangeRate(exchangeRate);
+        return exchangeRate;
     }
 
     /**
@@ -70,9 +75,9 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
         returns (uint256 mintAmt)
     {
         require(amount != 0, "amount-is-zero");
-        cToken.transferFrom(msg.sender, address(flashModule), amount);
+        require(cToken.transferFrom(msg.sender, address(flashModule), amount), "ctoken-tranferFrom-failed");
         getExchangeRate();
-        mintAmt = wmul(amount, exchangeRate);
+        mintAmt = wdiv(amount, exchangeRate);
         _mint(msg.sender, mintAmt);
 
         emit LogDeposit(msg.sender, amount, mintAmt);
@@ -94,9 +99,9 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
         require(cToken.mint(amount) == 0, "minting-reverted");
         uint256 finalBal = cToken.balanceOf(address(this));
         uint256 camt = sub(finalBal, initalBal);
-        cToken.transfer(address(flashModule), camt);
+        require(cToken.transfer(address(flashModule), camt), "ctoken-tranfer-failed");
         getExchangeRate();
-        mintAmt = wmul(camt, exchangeRate);
+        mintAmt = wdiv(camt, exchangeRate);
         _mint(msg.sender, mintAmt);
 
         emit LogDepositUnderlying(msg.sender, camt, amount, mintAmt);
@@ -117,9 +122,9 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
 
         _burn(msg.sender, amount);
         getExchangeRate();
-        ctokenAmt = wdiv(amount, exchangeRate);
+        ctokenAmt = wmul(amount, exchangeRate);
 
-        cToken.transferFrom(address(flashModule), target, ctokenAmt);
+        require(cToken.transferFrom(address(flashModule), target, ctokenAmt), "ctoken-tranferFrom-failed");;
 
         emit LogWithdraw(msg.sender, ctokenAmt, amount);
     }
