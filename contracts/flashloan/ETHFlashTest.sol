@@ -2,19 +2,19 @@
 pragma solidity ^0.6.8;
 
 import "./flashModule.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 // ETH Flashloan Example
-contract ETHFlashTest is Ownable {
+contract ETHFlashTest {
     // set the Lender contract address to a trusted flashmodule contract
     FlashModule public flasher; // Flashloan Module Contract
+	uint256 public totalfees; // total fees collected till now
 
     constructor(address _flashmodule) public {
         flasher = FlashModule(_flashmodule);
     }
 
     // Borrow any ETH that the FlashModule holds
-    function borrowETH(uint256 amount, bytes memory params) public onlyOwner {
+    function borrowETH(uint256 amount, bytes memory params) public {
         require(amount != 0, "amount-is-zero");
         flasher.ETHFlashLoan(amount, params);
     }
@@ -29,7 +29,8 @@ contract ETHFlashTest is Ownable {
 
         //... do whatever you want with the ETH
         //...
-
+        // keep track of total fees
+		totalfees = totalfees + (debt - amount);
         // repay loan
         flasher.repayEthDebt{value: debt}();
     }
