@@ -28,6 +28,7 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
     FlashModuleInterface public immutable flashModule; // Flashloan module contract
 
     uint256 public exchangeRate; // initial 1 ctoken = 1 wrap token
+    uint256 public immutable createdBlockNumber; // initial 1 ctoken = 1 wrap token
 
     constructor(
         string memory _name,
@@ -44,12 +45,13 @@ contract FlashCTokenPool is ReentrancyGuard, ERC20, DSMath {
         );
         exchangeRate = 10**18;
         _setupDecimals(8);
+        createdBlockNumber = block.number;
     }
 
     /**
      * @dev get current exchange rate
      */
-    function getExchangeRate() public {
+    function getExchangeRate() public returns(uint) {
         if (totalSupply() != 0) {
             address flashModuleAddr = address(flashModule);
             uint256 _ctokenBal = cToken.balanceOf(flashModuleAddr);
