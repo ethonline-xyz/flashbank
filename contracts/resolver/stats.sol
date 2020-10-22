@@ -132,15 +132,26 @@ contract CompoundHelpers is Helper {
         uint createdBlockNumber;
     }
 
+    function priceFeedMapping(address ctoken) internal view returns(uint price) {
+        if (ctoken == 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD) { // cdai
+            price = uint(ChainLinkInterface(0x777A68032a88E5A84678A77Af2CD65A7b3c0775a).latestAnswer());
+        } else if (ctoken == 0x41B5844f4680a8C38fBb695b7F9CFd1F64474a72) { // ceth
+            price = uint(ChainLinkInterface(0x9326BFA02ADD2366b30bacB125260Af641031331).latestAnswer());
+        } else if (ctoken == 0x4a92E71227D294F041BD82dd8f78591B75140d63) { // cusdc
+            price = uint(ChainLinkInterface(0x777A68032a88E5A84678A77Af2CD65A7b3c0775a).latestAnswer());
+        } else {
+            revert("no-token-found");
+        }
+    }
+
 }
 
 
 contract CompoundResolver is CompoundHelpers {
 
     function getCompPrice(CTokenInterface cToken) public view returns (uint tokenPrice) {
-        uint decimals = getCETHAddress() == address(cToken) ? 18 : TokenInterface(cToken.underlying()).decimals();
-        uint price = OrcaleComp(getOracleAddress()).getUnderlyingPrice(address(cToken));
-        tokenPrice = price / 10 ** (18 - decimals);
+        uint price = priceFeedMapping(address(cToken));
+        tokenPrice = price * 10 ** 10;
     }
 }
 
